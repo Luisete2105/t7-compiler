@@ -2,6 +2,11 @@
 #include "offsets.h"
 #include "detours.h"
 
+// Includes added by me
+#include <windows.h>
+#include <psapi.h>     // For GetModuleBaseName
+#include <tlhelp32.h>  // Optional for extended checks
+
 std::unordered_map<int, void*> GSCBuiltins::CustomFunctions;
 tScrVm_GetString GSCBuiltins::ScrVm_GetString;
 tScrVm_GetInt GSCBuiltins::ScrVm_GetInt;
@@ -54,6 +59,8 @@ void GSCBuiltins::Generate()
 	//AddCustomFunction("setmempoolsize", GSCBuiltins::GScr_setmempool);
 
 	AddCustomFunction("enableonlinematch", GSCBuiltins::GScr_enableonlinematch);
+
+	AddCustomFunction("getkey", GSCBuiltins::GScr_getkey);
 }
 
 void GSCBuiltins::Init()
@@ -491,3 +498,90 @@ void GSCBuiltins::nlog(const char* str, ...)
 	edit = FindWindowEx(notepad, NULL, "EDIT", NULL);
 	SendMessage(edit, EM_REPLACESEL, TRUE, (LPARAM)buf);
 }
+
+
+
+
+bool IsForegroundWindowBlackOps3()
+{
+	HWND hwnd = GetForegroundWindow();
+	if (!hwnd) return false;
+
+	DWORD pid = 0;
+	GetWindowThreadProcessId(hwnd, &pid);
+	if (pid == 0) return false;
+
+	HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+	if (!hProc) return false;
+
+	char exeName[MAX_PATH] = {};
+	GetModuleBaseNameA(hProc, NULL, exeName, sizeof(exeName));
+	CloseHandle(hProc);
+
+	// Case-insensitive compare
+	return _stricmp(exeName, "blackops3.exe") == 0;
+}
+
+
+
+
+
+
+
+
+
+#include <ShlObj.h>
+#include <stdarg.h>
+#include <string>
+#include <fstream>
+
+void LogToFile(const char* str, ...)
+{
+	// Get desktop path
+	char desktopPath[MAX_PATH];
+	SHGetFolderPathA(NULL, CSIDL_DESKTOP, NULL, 0, desktopPath);
+	std::string filePath = std::string(desktopPath) + "\\t7-log.txt";
+
+	// Open file in append mode, create if doesn't exist
+	std::ofstream file(filePath, std::ios::app);
+	if (!file.is_open())
+		return;
+
+	// Format string with variable arguments
+	char buf[256];
+	va_list ap;
+	va_start(ap, str);
+	vsprintf_s(buf, sizeof(buf), str, ap);
+	va_end(ap);
+
+	// Write to file with newline
+	file << buf << "\n";
+	file.close();
+}
+
+
+void GSCBuiltins::GScr_getkey(int scriptInst)
+{
+	//LogToFile("Running custom compiler function!", "GScr_getkey", "Line 549");
+
+
+	if (!IsForegroundWindowBlackOps3())
+	{
+		//LogToFile("Foreground window is NOT BO3");
+		Scr_AddInt(scriptInst, 0);
+		return;
+	}
+
+
+	int key = ScrVm_GetInt(scriptInst, 1);
+
+	SHORT state = GetAsyncKeyState(key);
+
+	bool isPressed = (state & 0x8000) != 0;
+
+	// Send debug output to Notepad
+	//LogToFile("getkey: key=%d pressed=%d", key, isPressed ? 1 : 0);
+
+	Scr_AddInt(scriptInst, isPressed ? 1 : 0);
+}
+

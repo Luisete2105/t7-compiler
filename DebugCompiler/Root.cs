@@ -32,12 +32,12 @@ namespace DebugCompiler
         private delegate int CommandHandler(string[] args, string[] opts);
         private Dictionary<ConsoleKey, CommandInfo> CommandTable = new Dictionary<ConsoleKey, CommandInfo>();
         private bool ClearHistory = false;
-        private static string UpdatesURL = "https://gsc.dev/t7c_version";
+        /*private static string UpdatesURL = "https://gsc.dev/t7c_version";
         private static string UpdaterURL = "https://gsc.dev/t7c_updater";
         private static string motdpath => Path.Combine(Application.StartupPath, "motd");
-        private const int motdHrsRemindClear = 4; // number of hours between reminding users about the message of the day.
+        private const int motdHrsRemindClear = 4; // number of hours between reminding users about the message of the day.*/
         private static string T7ProcessName = "blackops3";
-        static void motd()
+        /*static void motd()
         {
             var fi = new FileInfo(motdpath);
             if (fi.Exists)
@@ -52,7 +52,7 @@ namespace DebugCompiler
             fi.LastWriteTimeUtc = DateTime.Now;
             Console.WriteLine($"Message of the Day:\n\tEver wanted to shoot your friend with a thundergun?\n\tEver wondered what would happen if you could 1v1 with the origins staffs?\n\tNow you can! Zombie Blood Rush is a Black Ops III zombies mod that lets you kill other players.\n\tYour points are your health. Kill other players and zombies to race to 100K points. Play now: https://steamcommunity.com/sharedfiles/filedetails/?id=2696008055\n\n");
             System.Threading.Thread.Sleep(4000);
-        }
+        }*/
         static int Main(string[] args)
         {
             ParseCmdArgs(args, out string[] arguments, out string[] options);
@@ -60,7 +60,9 @@ namespace DebugCompiler
             string lv = GetEmbeddedVersion();
             Console.WriteLine($"T7/T8 Compiler version {lv}, by Serious\n");
 
-            if (!options.Contains("--noupdate"))
+            Console.WriteLine($"Lui Compiler version! VERSION 4.2\n\n");
+
+            /*if (!options.Contains("--noupdate"))
             {
                 try
                 {
@@ -91,7 +93,7 @@ namespace DebugCompiler
                     // we dont care if we cant update tbf
                     Console.WriteLine($"Error updating client... ignoring update");
                 }
-            }
+            }*/
 
             if(options.Contains("--boiii"))
             { 
