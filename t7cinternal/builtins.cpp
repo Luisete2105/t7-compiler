@@ -4,8 +4,6 @@
 
 // Includes added by me
 #include <windows.h>
-#include <psapi.h>     // For GetModuleBaseName
-#include <tlhelp32.h>  // Optional for extended checks
 
 std::unordered_map<int, void*> GSCBuiltins::CustomFunctions;
 tScrVm_GetString GSCBuiltins::ScrVm_GetString;
@@ -60,6 +58,8 @@ void GSCBuiltins::Generate()
 
 	AddCustomFunction("enableonlinematch", GSCBuiltins::GScr_enableonlinematch);
 
+	// compiler::getkey(int virtual_key)
+	// Returns true or false if the virtual_key is being pressed
 	AddCustomFunction("getkey", GSCBuiltins::GScr_getkey);
 }
 
@@ -500,8 +500,6 @@ void GSCBuiltins::nlog(const char* str, ...)
 }
 
 
-
-
 bool IsForegroundWindowBlackOps3()
 {
 	HWND hwnd = GetForegroundWindow();
@@ -525,62 +523,18 @@ bool IsForegroundWindowBlackOps3()
 
 
 
-
-
-
-
-
-#include <ShlObj.h>
-#include <stdarg.h>
-#include <string>
-#include <fstream>
-
-void LogToFile(const char* str, ...)
-{
-	// Get desktop path
-	char desktopPath[MAX_PATH];
-	SHGetFolderPathA(NULL, CSIDL_DESKTOP, NULL, 0, desktopPath);
-	std::string filePath = std::string(desktopPath) + "\\t7-log.txt";
-
-	// Open file in append mode, create if doesn't exist
-	std::ofstream file(filePath, std::ios::app);
-	if (!file.is_open())
-		return;
-
-	// Format string with variable arguments
-	char buf[256];
-	va_list ap;
-	va_start(ap, str);
-	vsprintf_s(buf, sizeof(buf), str, ap);
-	va_end(ap);
-
-	// Write to file with newline
-	file << buf << "\n";
-	file.close();
-}
-
-
 void GSCBuiltins::GScr_getkey(int scriptInst)
 {
-	//LogToFile("Running custom compiler function!", "GScr_getkey", "Line 549");
-
 
 	if (!IsForegroundWindowBlackOps3())
 	{
-		//LogToFile("Foreground window is NOT BO3");
 		Scr_AddInt(scriptInst, 0);
 		return;
 	}
 
-
 	int key = ScrVm_GetInt(scriptInst, 1);
-
 	SHORT state = GetAsyncKeyState(key);
-
 	bool isPressed = (state & 0x8000) != 0;
-
-	// Send debug output to Notepad
-	//LogToFile("getkey: key=%d pressed=%d", key, isPressed ? 1 : 0);
 
 	Scr_AddInt(scriptInst, isPressed ? 1 : 0);
 }
